@@ -1,4 +1,4 @@
-local Teams = game:GetService("Teams")
+--[[local Teams = game:GetService("Teams")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- [config]
@@ -78,4 +78,85 @@ task.spawn(function()
 
 		task.wait(SPAWN_INTERVAL)
 	end
+end)--]]
+
+
+--=================================<more effective way>=============================================--
+
+local Teams = game:GetService("Teams")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- [config]
+local JANITOR_TEAM_NAME = "Janitor" -- ur team name
+local trashModel = ReplicatedStorage:WaitForChild("Trash")
+local spawnArea = game.Workspace:WaitForChild("SpawnArea")
+local trashFolder = game.Workspace:FindFirstChild("TrashFolder") or Instance.new("Folder", game.Workspace)
+trashFolder.Name = "TrashFolder"
+
+local janitorTeam = Teams:FindFirstChild(JANITOR_TEAM_NAME)
+local spawnLoopActive = false 
+
+-- 
+local function setupTrashFunction(trash)
+	local prompt = trash:FindFirstChildOfClass("ProximityPrompt")
+	if not prompt then return end
+	prompt.Triggered:Connect(function(player)
+		local character = player.Character
+		-- u could add anything that will happens after janitor cleans up  the trash 
+		trash:Destroy()
+		end
+	end)
+end
+
+-- trash generation loop
+local function startSpawning()
+	if spawnLoopActive then return end 
+	spawnLoopActive = true
+	print("generratin trash.")
+	
+	while #janitorTeam:GetPlayers() > 0 do
+		if #trashFolder:GetChildren() < 25 then
+			local size = spawnArea.Size
+			local pos = spawnArea.Position
+			local randomPos = Vector3.new(
+				pos.X + math.random(-size.X/2, size.X/2),
+				pos.Y + (size.Y/2) + 0.5,
+				pos.Z + math.random(-size.Z/2, size.Z/2)
+			)
+			
+			local newTrash = trashModel:Clone()
+			newTrash.Position = randomPos
+			newTrash.Parent = trashFolder
+			setupTrashFunction(newTrash)
+		end
+		task.wait(10)
+	end
+	
+	-- when #janitor is 0
+	spawnLoopActive = false
+	trashFolder:ClearAllChildren()
+	print("제니터가 없어 모든 쓰레기를 제거했습니다.")
+end
+
+-- [main function]detecs player
+local function onPlayerTeamChanged(player)
+	if player.Team == janitorTeam then
+		-- star the loop when player comes in 
+		startSpawning()
+	end
+end
+
+-- connect event to every single player
+Players.PlayerAdded:Connect(function(player)
+	player:GetPropertyChangedSignal("Team"):Connect(function()
+		onPlayerTeamChanged(player)
+	end)
 end)
+
+-- detect players in server
+for _, player in pairs(Players:GetPlayers()) do
+	player:GetPropertyChangedSignal("Team"):Connect(function()
+		onPlayerTeamChanged(player)
+	end)
+end
