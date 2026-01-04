@@ -89,10 +89,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- [config] ------------
 local JANITOR_TEAM_NAME = "Janitor" -- ur team name
-local trashModel = ReplicatedStorage:WaitForChild("Trash")
-local spawnArea = game.Workspace:WaitForChild("SpawnArea")
+local trashModel = ReplicatedStorage:WaitForChild("Trash")--put ur trash model into the Rep storage and name it "Trash"
+local spawnArea = game.Workspace:WaitForChild("SpawnArea")-- make a part and name it as SpawnArea
 local trashFolder = game.Workspace:FindFirstChild("TrashFolder") or Instance.new("Folder", game.Workspace)
-trashFolder.Name = "TrashFolder"
+trashFolder.Name = "TrashFolder" --make one if u don't have one
 ------------------------
 local janitorTeam = Teams:FindFirstChild(JANITOR_TEAM_NAME)
 local spawnLoopActive = false 
