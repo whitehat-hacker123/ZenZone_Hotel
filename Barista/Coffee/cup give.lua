@@ -1,7 +1,12 @@
 local prox = script.parent
-local rep = game.Getservice(Replicatedtorage):WaitForChild("cup")
+local rep = game.ReplicatedStorage:FindFirstChild("Cup")
 
-prox.PromptTriggered:Connect(funtion(player))
-  local new = rep.Cup:Clone
-  new.Parent = player:Waitforchild("Backpack")
-end
+prox.Triggered:connect(function(player)
+	if player.WaitForChild("Cup") then
+		-- add warning message
+	else
+		local new = rep:Clone()
+	
+		new.Parent = player:WaitForChild("Backpack")
+	end
+end)
