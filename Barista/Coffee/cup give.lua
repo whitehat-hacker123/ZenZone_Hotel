@@ -2,5 +2,6 @@ local prox = script.parent
 local rep = game.Getservice(Replicatedtorage):WaitForChild("cup")
 
 prox.PromptTriggered:Connect(funtion(player))
-  rep.parent = player.backpack
+  local new = rep.Cup:Clone
+  new.Parent = player:Waitforchild("Backpack")
 end
