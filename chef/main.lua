@@ -166,4 +166,6 @@ if platePrompt then
 			warn("완성된 그릴을 들고 접시를 클릭하세요.")
 		end
 	end)
+	--whats yo lookin fo
 end
+
