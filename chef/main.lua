@@ -2,12 +2,12 @@
 local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 
--- [1] recipe and ingredient
+-- [1] Recipes and ingredient setup
 local RECIPES = {
 	{ 
 		Name = "Beef Steak", 
 		Ingredients = {"Steak", "Asparagus"}, 
-		Base = "Steak" -- base
+		Base = "Steak" -- The key ingredient that starts the cooking process
 	},
 	{ 
 		Name = "Salmon Meuniere", 
@@ -17,83 +17,82 @@ local RECIPES = {
 	{ 
 		Name = "Pasta Carbonara", 
 		Ingredients = {"Pasta", "Bacon"}, 
-		Base = "Bacon" -- what yo lookin at
+		Base = "Bacon" -- Cooking starts when bacon is seared
 	},
 	{ 
 		Name = "Tomato Soup", 
 		Ingredients = {"Tomato", "Bread"}, 
-		Base = "Tomato" -- stars
+		Base = "Tomato" -- Cooking starts when tomato is boiled
 	}
 }
 
--- 완성된 음식 저장소
+-- Storage for finished food
 local FoodStorage = ServerStorage:WaitForChild("FinishedFood")
 
 -------------------------------------------------------------
--- [2] cooking logic (Cooking Process)
+-- [2] Cooking logic
 -------------------------------------------------------------
 local function startCooking(tool)
-	if tool:GetAttribute("IsCooking") then return end -- skip if its aredy cookin
+	if tool:GetAttribute("IsCooking") then return end -- skip if already cooking
 	
 	tool:SetAttribute("IsCooking", true)
-	print("🔥🔥🔥🔥🔥🔥🔥🔥🔥 start cookin! (1 min)")
+	print("🔥 Cooking started! (1 minute)")
 
-	local grillPart = tool:FindFirstChild("GrillPart") -- stove's heat plate(?)
+	local grillPart = tool:FindFirstChild("GrillPart") -- part whose color will change
 	local smoke = grillPart and grillPart:FindFirstChild("Smoke")
 
 	if grillPart then
-		-- colo change module
+		-- 1. Color change (gradually turn red over 30 seconds)
 		local tweenInfo = TweenInfo.new(30, Enum.EasingStyle.Linear)
-		local goal = {Color = Color3.fromRGB(255, 50, 0)} -- colo aftu 30 sec
+		local goal = {Color = Color3.fromRGB(255, 50, 0)} -- red
 		local tween = TweenService:Create(grillPart, tweenInfo, goal)
-		tween:Play()
+		 tween:Play()
 	end
 
-	-- 2. 30sec after ->> enalbe particle effect
+	-- 2. After 30 seconds, start smoke
 	task.delay(30, function()
-		if tool and tool.Parent then -- if tool stil exist
+		if tool and tool.Parent then -- only if the tool still exists
 			if smoke then smoke.Enabled = true end
-			print("💨 alah!!💨💨 its smokin! ")
+			print("💨 Smoke starting! (30s elapsed)")
 		end
 	end)
 
-	-- 3. after 60 secc 
+	-- 3. After 60 seconds, cooking complete
 	task.delay(60, function()
 		if tool and tool.Parent then
 			tool:SetAttribute("Status", "Cooked")
-			print("✅ ice..")
+			print("✅ Cooking complete! Ready for plating.")
 			
-			-- turn off fire 
-			if grillPart then grillPart.Color = Color3.fromRGB(139, 69, 19) end -- nig u dun?
-			if smoke then smoke.Enabled = false end -- disable smoke
+			-- Visual feedback (indicate cooked state by adding brown or turning off flame)
+			if grillPart then grillPart.Color = Color3.fromRGB(139, 69, 19) end -- brown (cooked)
+			if smoke then smoke.Enabled = false end -- turn off smoke
 		end
 	end)
 end
 
 -------------------------------------------------------------
--- [3] 상호작용 관리 (재료 담기 & 플레이팅)
+-- [3] Interaction management (Ingredient pickup & Plating)
 -------------------------------------------------------------
 
--- A. 재료 디스펜서 로직 (재료 상자들)
--- Workspace 안의 'Ingredients' 폴더에 있는 모든 파트를 찾음
+-- A. Ingredient dispenser logic (ingredient boxes)
+-- Find all parts inside the 'Ingredients' folder in Workspace
 for _, dispenser in pairs(workspace.Ingredients:GetChildren()) do
 	local prompt = dispenser:FindFirstChild("ProximityPrompt")
 	if prompt then
 		prompt.Triggered:Connect(function(player)
 			local character = player.Character
-			local tool = character and character:FindFirstChild("PortableGrill") -- 셰프 도구 이름 확인
+			local tool = character and character:FindFirstChild("PortableGrill") -- Chef tool name check
 
 			if tool then
-				local ingredientName = dispenser.Name -- 파트 이름을 재료 이름으로 사용 (예: Steak)
+				local ingredientName = dispenser.Name -- Use the part's name as the ingredient name (e.g., Steak)
 				
-				-- 이미 있는 재료인지 확인
-				if tool:GetAttribute("Has_"..ingredientName) then return end
-				
-				-- 재료 추가
+				-- Check if ingredient is already present
+				if tool:GetAttribute("Has_"..ingredientName) then return end					
+				-- Add ingredient
 				tool:SetAttribute("Has_"..ingredientName, true)
-				print("재료 추가됨: " .. ingredientName)
+				print("Ingredient added: " .. ingredientName)
 				
-				-- 만약 이 재료가 '굽기'를 시작하는 메인 재료라면 타이머 시작
+				-- If this ingredient is the Base that starts cooking, start the timer
 				for _, recipe in pairs(RECIPES) do
 					if recipe.Base == ingredientName then
 						startCooking(tool)
@@ -101,13 +100,13 @@ for _, dispenser in pairs(workspace.Ingredients:GetChildren()) do
 					end
 				end
 			else
-				warn("그릴(PortableGrill)을 먼저 손에 들어주세요!")
+				warn("Please equip the grill (PortableGrill) first!")
 			end
 		end)
 	end
 end
 
--- B. 플레이팅 스테이션 로직 (접시)
+-- B. Plating station logic (plates)
 local plateStation = workspace:WaitForChild("PlatingStation")
 local platePrompt = plateStation:FindFirstChild("ProximityPrompt")
 
@@ -117,18 +116,18 @@ if platePrompt then
 		local tool = character and character:FindFirstChild("PortableGrill")
 
 		if tool then
-			-- 1. 요리가 다 익었는지 확인
+			-- 1. Check if the dish is fully cooked
 			if tool:GetAttribute("Status") ~= "Cooked" then
-				warn("아직 요리가 완성되지 않았거나, 덜 익었습니다!")
+				warn("The dish is not ready or is undercooked!")
 				return
 			end
 
-			-- 2. 레시피 매칭 확인
+			-- 2. Check recipe matching
 			local foundRecipe = nil
 			
 			for _, recipe in pairs(RECIPES) do
 				local match = true
-				-- 필요한 모든 재료가 들어있는지 체크
+				-- Check if all required ingredients are present
 				for _, ing in pairs(recipe.Ingredients) do
 					if not tool:GetAttribute("Has_"..ing) then
 						match = false
@@ -142,32 +141,31 @@ if platePrompt then
 				end
 			end
 
-			-- 3. 결과물 지급
+			-- 3. Dispense result
 			if foundRecipe then
-				print("🍽️ 완성된 요리: " .. foundRecipe)
+				print("🍽️ Finished dish: " .. foundRecipe)
 				
-				-- 기존 그릴 삭제 (요리 끝)
+				-- Destroy the existing grill (cooking finished)
 				tool:Destroy()
 				
-				-- 완성된 음식 툴 지급
+				-- Give the finished food tool
 				local foodTool = FoodStorage:FindFirstChild(foundRecipe)
 				if foodTool then
 					local clone = foodTool:Clone()
 					clone.Parent = player.Backpack
-					player.Character.Humanoid:EquipTool(clone) -- 바로 손에 들려줌
+					-- Safely equip if humanoid exists
+					if player.Character and player.Character:FindFirstChild("Humanoid") then
+						player.Character.Humanoid:EquipTool(clone) -- equip immediately
+					end
 				else
-					warn("서버 저장소에 해당 음식 도구가 없습니다: " .. foundRecipe)
+					warn("No corresponding food tool in ServerStorage: " .. foundRecipe)
 				end
 			else
-				warn("재료 조합이 이상합니다. 맞는 레시피가 없습니다.")
+				warn("Ingredient combination mismatch. No matching recipe.")
 			end
 			
 		else
-			warn("완성된 그릴을 들고 접시를 클릭하세요.")
+			warn("Hold a finished grill and click the plating station.")
 		end
-	end)
-	--whats yo lookin fo
+	end
 end
-
-
-
