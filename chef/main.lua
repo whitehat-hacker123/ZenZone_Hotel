@@ -38,7 +38,7 @@ local function startCooking(tool)
 	tool:SetAttribute("IsCooking", true)
 	print("🔥🔥🔥🔥🔥🔥🔥🔥🔥 start cookin! (1 min)")
 
-	local grillPart = tool:FindFirstChild("GrillPart") -- stove's heat plate(?)
+	local grillPart = tool:FindFirstChild("GrillPart") 
 	local smoke = grillPart and grillPart:FindFirstChild("Smoke")
 
 	-- 2. 30sec after ->> enalbe particle effect
@@ -159,6 +159,7 @@ if platePrompt then
 	end)
 	--whats yo lookin fo
 end
+
 
 
 
