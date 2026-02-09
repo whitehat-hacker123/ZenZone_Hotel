@@ -24,7 +24,7 @@ local function startCooking(tool)
 	if tool:GetAttribute("IsCooking") then return end
 	tool:SetAttribute("IsCooking", true)
 
-	print("조리 시작! 가스레인지 가동.")
+	print("🔥🔥 조리 시작! 가스레인지 가동.")
 
 	-- 경로 수정: tool.GrillPart.Handle -> 구조에 맞게 확인 필요
 	local grillPart = tool:FindFirstChild("GrillPart")
@@ -34,7 +34,7 @@ local function startCooking(tool)
 	task.delay(30, function()
 		if tool and tool.Parent then
 			if smoke then smoke.Enabled = true end
-			print("연기 발생!")
+			print("💨 연기 발생!")
 		end
 	end)
 
@@ -53,7 +53,7 @@ local function startCooking(tool)
 				pickup.Enabled = true
 				pickup.ActionText = "요리 완료! 집기"
 			end
-			print("요리 완성!")
+			print("✅ 요리 완성!")
 		end
 	end)
 end
@@ -110,8 +110,66 @@ local platePrompt = plateStation:FindFirstChild("ProximityPrompt")
 
 if platePrompt then
 	platePrompt.Triggered:Connect(function(player)
-		-- (기존 코드와 동일하게 진행하여 컵을 진짜 음식으로 교환)
-		-- ... 중략 ...
+		-- D. 플레이팅 스테이션 (접시)
+		local plateStation = workspace:WaitForChild("PlatingStation")
+		local platePrompt = plateStation:FindFirstChild("ProximityPrompt")
+
+		if platePrompt then
+			platePrompt.Triggered:Connect(function(player)
+				local character = player.Character
+				-- 현재 손에 들고 있는 팬을 찾음
+				local tool = character and character:FindFirstChild("PortableGrill")
+
+				if tool then
+					-- 1. 요리가 다 익었는지(가스레인지 과정을 거쳤는지) 확인
+					if tool:GetAttribute("Status") ~= "Cooked" then
+						warn("요리가 아직 덜 익었거나 조리되지 않았습니다!")
+						return
+					end
+
+					-- 2. 레시피 대조 (무슨 요리인지 판별)
+					local foundRecipe = nil
+
+					for _, recipe in pairs(RECIPES) do
+						local match = true
+						-- 레시피에 적힌 모든 재료가 팬의 Attribute에 담겨 있는지 체크
+						for _, ing in pairs(recipe.Ingredients) do
+							if not tool:GetAttribute("Has_" .. ing) then
+								match = false
+								break
+							end
+						end
+
+						if match then
+							foundRecipe = recipe.Name
+							break
+						end
+					end
+
+					-- 3. 결과물 지급
+					if foundRecipe then
+						print("🍽️ 서빙 준비 완료: " .. foundRecipe)
+
+						-- 사용한 그릴(팬) 삭제
+						tool:Destroy()
+
+						-- ServerStorage에서 진짜 요리 모델 가져오기
+						local foodTool = FoodStorage:FindFirstChild(foundRecipe)
+						if foodTool then
+							local clone = foodTool:Clone()
+							clone.Parent = player.Backpack
+							-- 플레이어가 바로 손에 들도록 설정
+							character.Humanoid:EquipTool(clone) 
+							print("✅ " .. foundRecipe .. "가 인벤토리에 지급되었습니다.")
+						else
+							warn("오류: ServerStorage.FinishedFood에 '" .. foundRecipe .. "' 모델이 없습니다!")
+						end
+					else
+						warn("알 수 없는 요리입니다. 재료 조합을 확인하세요.")
+					end
+
+				else
+					warn("완성된 요리가 담긴 그릴(PortableGrill)을 손
 	end)
 end
 
