@@ -24,7 +24,7 @@ local function startCooking(tool)
 	if tool:GetAttribute("IsCooking") then return end
 	tool:SetAttribute("IsCooking", true)
 
-	print("🔥🔥 조리 시작! 가스레인지 가동.")
+	print( 조리 시작! 가스레인지 가동.")
 
 	-- 경로 수정: tool.GrillPart.Handle -> 구조에 맞게 확인 필요
 	local grillPart = tool:FindFirstChild("GrillPart")
@@ -34,7 +34,7 @@ local function startCooking(tool)
 	task.delay(30, function()
 		if tool and tool.Parent then
 			if smoke then smoke.Enabled = true end
-			print("💨 연기 발생!")
+			print(" 연기 발생!")
 		end
 	end)
 
@@ -53,7 +53,7 @@ local function startCooking(tool)
 				pickup.Enabled = true
 				pickup.ActionText = "요리 완료! 집기"
 			end
-			print("✅ 요리 완성!")
+			print(" 요리 완성!")
 		end
 	end)
 end
@@ -172,4 +172,5 @@ if platePrompt then
 					warn("완성된 요리가 담긴 그릴(PortableGrill)을 손
 	end)
 end
+
 
