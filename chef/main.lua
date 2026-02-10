@@ -26,7 +26,7 @@ local function startCooking(tool)
 
 	print( 조리 시작! 가스레인지 가동.")
 
-	-- 경로 수정: tool.GrillPart.Handle -> 구조에 맞게 확인 필요
+
 	local grillPart = tool:FindFirstChild("GrillPart")
 	local smoke = grillPart and grillPart:FindFirstChild("Smoke")
 
@@ -172,5 +172,6 @@ if platePrompt then
 					warn("완성된 요리가 담긴 그릴(PortableGrill)을 손
 	end)
 end
+
 
 
